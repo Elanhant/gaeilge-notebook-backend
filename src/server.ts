@@ -5,10 +5,18 @@ import * as logger from 'morgan';
 import * as path from 'path';
 import errorHandler = require('errorhandler');
 import methodOverride = require('method-override');
+import mongoose = require('mongoose');
+
 import { WordsRoute } from './routes/words';
+import { IWord } from './interfaces/word';
+import { IModel } from './models/model';
+import { IWordModel } from './models/word';
+import { wordSchema } from './schemas/word';
 
 export class Server {
   public app: express.Application;
+
+  private model: IModel;
 
   public static bootstrap(): Server {
       return new Server();
@@ -16,6 +24,8 @@ export class Server {
 
   constructor() {
       this.app = express();
+
+      this.model = Object();
 
       this.config();
 
@@ -29,6 +39,8 @@ export class Server {
   }
 
   public config() {
+      const MONGODB_CONNECTION: string = 'mongodb://localhost:27017/gaeilge';
+
       // Add static paths
       this.app.use(express.static(path.join(__dirname, 'public')));
 
@@ -53,6 +65,16 @@ export class Server {
 
       // Use override middleware
       this.app.use(methodOverride());
+
+      // Use q promises
+      global.Promise = require("q").Promise;
+      mongoose.Promise = global.Promise;
+
+      // Connect to mongoose
+      let connection: mongoose.Connection = mongoose.createConnection(MONGODB_CONNECTION);
+
+      // Create models
+      this.model.word = connection.model<IWordModel>('Word', wordSchema);
 
       // Catch 404 and forward to error handler
       this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
