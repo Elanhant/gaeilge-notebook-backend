@@ -90,7 +90,7 @@ export class Server {
     let router: express.Router;
     router = express.Router();
 
-    WordsRoute.create(router);
+    WordsRoute.create(router, this.model);
 
     this.app.use(router);
   }
